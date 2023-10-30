@@ -1,0 +1,46 @@
+[build-system]
+requires = ['setuptools']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'smp-importer'
+version = '0.1.0'
+description = 'Importer of maSMPs for Software Management Wizard'
+readme = 'README.md'
+keywords = ['dsw', 'smp', 'masmp', 'import', 'mapping']
+license = { text = 'Apache License 2.0' }
+authors = [
+    { name = 'Marek Suchánek', email = 'marek.suchanek@ds-wizard.org' },
+    { name = 'Vojtěch Knaisl', email = 'vojtech.knaisl@ds-wizard.org' }
+]
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Text Processing',
+    'Topic :: Utilities',
+]
+requires-python = '>=3.10, <4'
+dependencies = [
+    'fastapi',
+    'Jinja2',
+]
+
+[project.urls]
+Homepage = 'https://smw.ds-wizard.org'
+Repository = 'https://github.com/ds-wizard/smp-importer'
+
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.packages.find]
+namespaces = true
+where = ['src']
+
+[tool.setuptools.package-data]
+'*' = ['*.css', '*.js', '*.j2', '*.png']
+
+[tool.distutils.bdist_wheel]
+universal = true
