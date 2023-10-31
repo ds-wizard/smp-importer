@@ -9,7 +9,7 @@ import fastapi.templating
 import httpx
 import pydantic
 
-from .logic import prepare_import_mapping
+from .importer import process
 
 
 ROOT_DIR = pathlib.Path(__file__).parent
@@ -53,8 +53,8 @@ async def get_index(request: fastapi.Request):
 @app.post('/api/import-file', response_class=fastapi.responses.JSONResponse)
 async def api_import_from_file(body_file: BodyFile):
     try:
-        result = prepare_import_mapping(
-            contents=body_file.contents,
+        result = process(
+            content=body_file.contents,
             content_type=body_file.type,
         )
         return fastapi.responses.JSONResponse(content={
@@ -87,7 +87,7 @@ async def fetch_from_url(url: str) -> dict:
     async with httpx.AsyncClient() as client:
         r = await client.get(url)
         r.raise_for_status()
-        return prepare_import_mapping(
-            contents=r.content.decode(encoding=r.charset_encoding or 'utf-8'),
+        return process(
+            content=r.content.decode(encoding=r.charset_encoding or 'utf-8'),
             content_type=r.headers.get('content-type'),
         )

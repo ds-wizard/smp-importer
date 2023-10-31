@@ -1,12 +1,7 @@
-class _MappingExecutor:
+class MappingExecutor:
 
     def __init__(self):
         self.result = []
-        self.variables = {}
-
-    def reset(self):
-        self.result = []
-        self.variables = {}
 
     def result_add(self, action: str, **kwargs):
         self.result.append({
@@ -30,11 +25,3 @@ class _MappingExecutor:
         return {
             'actions': self.result,
         }
-
-
-def prepare_import_mapping(contents: str, content_type: str) -> dict:
-        executor = _MappingExecutor()
-
-        # TODO: process contents in custom functions, etc.
-
-        return executor.get_result_dict()
