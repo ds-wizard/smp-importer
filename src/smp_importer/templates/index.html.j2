@@ -25,7 +25,7 @@
                     window.postMessage({
                         type: 'ready',
                         origin: '',
-                        styleUrl: 'https://s3.ds-wizard.org/dsw-server-app/17032b53-f4da-47bb-972c-ea82176422eb/public/customization.6595603168296135982.css',
+                        styleUrl: 'https://s3.ds-wizard.org/dsw-server-app/8bfcffb9-d276-4777-92a5-3ca25f7cd2bc/public/customization.2794146750364175066.css',
                         knowledgeModel: '{}',
                     })
                 }
@@ -37,6 +37,32 @@
     <body>
         <div class="container">
             <h1>SMP Importer</h1>
+
+            <div id="input-file">
+                <h2>From local file</h2>
+
+                <div class="mb-3">
+                    <label for="file-input" class="form-label">Select a file with maSMP (RDF/JSON-LD):</label>
+                    <input type="file" id="file-input" class="form-control" />
+                    <p class="hint"></p>
+                </div>
+            </div>
+
+            <div id="input-url">
+                <h2>From URL</h2>
+
+                <div class="mb-3">
+                    <label for="url-input" class="form-label">Enter a URL with maSMP:</label>
+                    <input type="url" id="url-input" class="form-control" />
+                    <p class="hint"></p>
+                    <button id="btn-load" class="btn btn-primary" type="button">Load maSMP</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <pre id="result-debug"></pre>
+
         </div>
     </body>
 </html>

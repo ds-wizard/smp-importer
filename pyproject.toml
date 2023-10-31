@@ -25,6 +25,7 @@ classifiers = [
 requires-python = '>=3.10, <4'
 dependencies = [
     'fastapi',
+    'httpx',
     'Jinja2',
     'rdflib',
 ]
