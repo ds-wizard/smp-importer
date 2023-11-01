@@ -4,7 +4,7 @@ importer
     .init({
         useWizardStyles: true,
         windowSize: {
-            width: 300,
+            width: 600,
             height: 500,
         },
     })
@@ -12,63 +12,21 @@ importer
         jQuery('#file-input').on('input', function (e) {
             const files = e.target.files
             console.log(files)
-            const file = files[0]
-
-            const reader = new FileReader()
-                reader.addEventListener('load', (event) => {
-                    let data = ''
-                    try {
-                        data = event.target.result
-                    } catch (error) {
-                        alert('Failed to load file')
-                    }
-
-                    jQuery.ajax({
-                        type: 'POST',
-                        url: `/api/import-file`,
-                        data: JSON.stringify({
-                            'contents': data,
-                            'type': file.type,
-                            'name': file.name,
-                            'bytesize': file.size,
-                        }),
-                        contentType: "application/json; charset=utf-8",
-                        traditional: true,
-                        success: function (result) {
-                            doImport(result.actions)
-                        },
-                        error: function (result) {
-                            console.log(result)
-                            alert('failed')
-                        }
-                    })
-                })
-                reader.readAsText(file)
+            loadFile(files[0])
         })
 
-        jQuery('#btn-load').on('click', function () {
+        jQuery('#btn-github-load').on('click', function () {
+            const owner = jQuery('#github-owner-input').val()
+            const repo = jQuery('#github-repo-input').val()
+            const file = jQuery('#github-file-input').val()
+            console.log(`${owner}/${repo}:/${file}`)
+            loadGitHubPublic(owner, repo, file)
+        })
+
+        jQuery('#btn-url-load').on('click', function () {
             const url = jQuery('#url-input').val()
             console.log(url)
-
-            if (!isValidUrl(url)) {
-                alert('Invalid URL!')
-                jQuery('#url-input').val('')
-            } else {
-                jQuery.ajax({
-                    type: 'POST',
-                    url: `/api/import-url`,
-                    data: JSON.stringify({'url': url}),
-                    contentType: "application/json; charset=utf-8",
-                    traditional: true,
-                    success: function (result) {
-                        doImport(result.actions)
-                    },
-                    error: function (result) {
-                        console.log(result)
-                        alert('failed')
-                    }
-                })
-            }
+            loadUrl(url)
         })
     })
     .catch(error => {
@@ -127,5 +85,81 @@ function doImport(actions) {
     }
 
     importer.send()
+}
+
+function loadUrl(url) {
+    if (!isValidUrl(url)) {
+        alert('Invalid URL!')
+        jQuery('#url-input').val('')
+    } else {
+        jQuery.ajax({
+            type: 'POST',
+            url: `/api/import-url`,
+            data: JSON.stringify({'url': url}),
+            contentType: "application/json; charset=utf-8",
+            traditional: true,
+            success: function (result) {
+                doImport(result.actions)
+            },
+            error: function (result) {
+                console.log(result)
+                alert('failed')
+            }
+        })
+    }
+}
+
+function loadFile(file) {
+    const reader = new FileReader()
+    reader.addEventListener('load', (event) => {
+        let data = ''
+        try {
+            data = event.target.result
+        } catch (error) {
+            alert('Failed to load file')
+        }
+
+        jQuery.ajax({
+            type: 'POST',
+            url: `/api/import-file`,
+            data: JSON.stringify({
+                'contents': data,
+                'type': file.type,
+                'name': file.name,
+                'bytesize': file.size,
+            }),
+            contentType: "application/json; charset=utf-8",
+            traditional: true,
+            success: function (result) {
+                doImport(result.actions)
+            },
+            error: function (result) {
+                console.log(result)
+                alert('failed')
+            }
+        })
+    })
+    reader.readAsText(file)
+}
+
+function loadGitHubPublic(owner, repo, file) {
+    jQuery.ajax({
+            type: 'POST',
+            url: `/api/import-github-public`,
+            data: JSON.stringify({
+                'owner': owner,
+                'repo': repo,
+                'file': file,
+            }),
+            contentType: "application/json; charset=utf-8",
+            traditional: true,
+            success: function (result) {
+                doImport(result.actions)
+            },
+            error: function (result) {
+                console.log(result)
+                alert('failed')
+            }
+        })
 }
 

@@ -1,4 +1,6 @@
+import base64
 import logging
+import mimetypes
 import os
 import pathlib
 
@@ -15,6 +17,7 @@ from .importer import process
 ROOT_DIR = pathlib.Path(__file__).parent
 STATIC_DIR = ROOT_DIR / 'static'
 TEMPLATES_DIR = ROOT_DIR / 'templates'
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', None)
 LOG = logging.getLogger(__name__)
 
 
@@ -38,6 +41,12 @@ class BodyFile(pydantic.BaseModel):
     bytesize: int
 
 
+class BodyGitHubPublic(pydantic.BaseModel):
+    owner: str
+    repo: str
+    file: str
+
+
 @app.get('/', response_class=fastapi.responses.HTMLResponse)
 async def get_index(request: fastapi.Request):
     return templates.TemplateResponse(
@@ -51,15 +60,15 @@ async def get_index(request: fastapi.Request):
 
 
 @app.post('/api/import-file', response_class=fastapi.responses.JSONResponse)
-async def api_import_from_file(body_file: BodyFile):
+async def api_import_from_file(body: BodyFile):
     try:
         result = process(
-            content=body_file.contents,
-            content_type=body_file.type,
+            content=body.contents,
+            content_type=body.type,
         )
         return fastapi.responses.JSONResponse(content={
             'sourcce': 'file',
-            'name': body_file.name,
+            'name': body.name,
             'actions': result['actions'],
         })
     except Exception as e:
@@ -68,12 +77,28 @@ async def api_import_from_file(body_file: BodyFile):
 
 
 @app.post('/api/import-url', response_class=fastapi.responses.JSONResponse)
-async def api_import_from_url(body_url: BodyURL):
+async def api_import_from_url(body: BodyURL):
     try:
-        result = await fetch_from_url(body_url.url)
+        result = await fetch_from_url(body.url)
         return fastapi.responses.JSONResponse(content={
             'source': 'url',
-            'url': body_url.url,
+            'url': body.url,
+            'actions': result['actions'],
+        })
+    except Exception as e:
+        LOG.error(f'Error appeared: {str(e)}', exc_info=e)
+        raise fastapi.HTTPException(status_code=500)
+
+
+@app.post('/api/import-github-public', response_class=fastapi.responses.JSONResponse)
+async def api_import_from_github_public(body: BodyGitHubPublic):
+    try:
+        result = await fetch_from_github_public(body.owner, body.repo, body.file)
+        return fastapi.responses.JSONResponse(content={
+            'source': 'github',
+            'owner': body.owner,
+            'repo': body.repo,
+            'file': body.file,
             'actions': result['actions'],
         })
     except Exception as e:
@@ -91,3 +116,27 @@ async def fetch_from_url(url: str) -> dict:
             content=r.content.decode(encoding=r.charset_encoding or 'utf-8'),
             content_type=r.headers.get('content-type'),
         )
+
+
+async def fetch_from_github_public(owner: str, repo: str, file: str) -> dict:
+    headers = {
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+    }
+    if GITHUB_TOKEN is not None:
+        headers['Authorization'] = f'Bearer {GITHUB_TOKEN}'
+
+    async with httpx.AsyncClient() as client:
+        r = await client.get(
+            url=f'https://api.github.com/repos/{owner}/{repo}/contents/{file}',
+            headers=headers
+        )
+        r.raise_for_status()
+
+        data = r.json()
+        if data.get('encoding') == 'base64':
+            return process(
+                content=base64.b64decode(data['content']).decode('utf-8'),
+                content_type=mimetypes.guess_type(data['url'])[0] or 'text/plain',
+            )
+        raise RuntimeError('Unexpected response from GitHub')
