@@ -1,4 +1,4 @@
-const importer = new DSWImporter()
+const importer = new dsw.Importer()
 
 importer
     .init({
