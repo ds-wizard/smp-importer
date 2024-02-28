@@ -11,6 +11,10 @@ importer
     .then(() => {
         jQuery('#file-input').on('input', function (e) {
             const files = e.target.files
+            if (files.length === 0) {
+                alert('No file selected!')
+                return
+            }
             console.log(files)
             loadFile(files[0])
         })
@@ -18,13 +22,24 @@ importer
         jQuery('#btn-github-load').on('click', function () {
             const owner = jQuery('#github-owner-input').val()
             const repo = jQuery('#github-repo-input').val()
-            const file = jQuery('#github-file-input').val()
+            if (owner === '' || repo === '') {
+                alert('Repository owner and name are required!');
+                return
+            }
+            let file = jQuery('#github-file-input').val()
+            if (file === '') {
+                file = 'metadata.json'
+            }
             console.log(`${owner}/${repo}:/${file}`)
             loadGitHubPublic(owner, repo, file)
         })
 
         jQuery('#btn-url-load').on('click', function () {
             const url = jQuery('#url-input').val()
+            if (url === '') {
+                alert('URL is required!')
+                return
+            }
             console.log(url)
             loadUrl(url)
         })
@@ -158,7 +173,7 @@ function loadGitHubPublic(owner, repo, file) {
             },
             error: function (result) {
                 console.log(result)
-                alert('failed')
+                alert('Failed to get file from GitHub!')
             }
         })
 }
